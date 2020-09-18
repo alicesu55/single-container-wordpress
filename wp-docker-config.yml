@@ -1,0 +1,20 @@
+# The settings for the database (mariadb)
+database:
+  root_password_random: true
+
+  # If you want to control the root password, set root_password_random to false
+  # and set a root_password:
+  #root_password: fqT!%gLsB55cJ!ZD
+
+sites:
+  default:
+    ### The "default" section is optional
+    ### The default site does not match any domain name
+    database_name: default_site
+    database_password: 9&2H$gb?cJR7z8cx
+  
+  mysite.com:
+    alias: "www.mysite.com"
+    ### You can control the name of the database if you like If not set.
+    ### the default value is the same as your domain name
+    # database_name: 
