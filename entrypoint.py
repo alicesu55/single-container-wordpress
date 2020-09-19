@@ -95,7 +95,7 @@ class WpDockerBuilder:
         pass
 
     def init_database(self, db_settings):
-        print("Initializing database: ", db_settings)
+        print("Initializing database ... ")
         if 'root_password_random' in db_settings and db_settings['root_password_random']==True:
             self.db_password = random_password()
         elif 'root_password' in db_settings:
@@ -123,7 +123,6 @@ class WpDockerBuilder:
 
 if __name__=="__main__":
     builder = WpDockerBuilder('/etc/wp-docker-config.yml')
-    builder.print()
     builder.build_lamp()
 
     p=subprocess.Popen (["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"], stdout=sys.stdout, stderr=sys.stderr)
