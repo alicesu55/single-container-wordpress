@@ -23,7 +23,7 @@ class SiteSettings:
         self.db_username = settings['database_user_name'] if 'database_user_name' in settings else self.safe_name
         self.db_password = settings['database_password'] if 'database_password' in settings else random_password()
         self.alias = settings['alias'] if 'alias' in settings else []
-        self.site_folder = f"/var/www/html/{self.safe_name}"
+        self.site_folder = f"/var/www/html/{self.domain}"
 
     def db_script(self):
         return f"""
@@ -76,7 +76,7 @@ class WpDockerBuilder:
         
         for s in self.sites:
             ## Apache
-            conf_path = f'/etc/apache2/sites-enabled/{s.safe_name}.conf'
+            conf_path = f'/etc/apache2/sites-enabled/{s.domain}.conf'
             if not os.path.exists(conf_path):    
                 with open(conf_path, 'w') as file:
                     file.write(s.apache_config())

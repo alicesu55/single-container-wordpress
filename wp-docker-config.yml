@@ -9,7 +9,7 @@ database:
 sites:
   default:
     ### The "default" section is optional
-    ### The default site does not match any domain name
+    ### The default site does not match all domains not listed elsewhere
     database_name: default_site
     database_password: 9&2H$gb?cJR7z8cx
   
@@ -22,3 +22,7 @@ sites:
     # database_name: 
 
     # database_user_name
+  #The most basic site can be configured with just a domain name
+  t3.alicesu.ml:
+  t4.alicesu.ml:
+  t5.alicesu.ml:
