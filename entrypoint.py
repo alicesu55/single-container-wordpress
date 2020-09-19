@@ -70,7 +70,7 @@ class WpDockerBuilder:
 
         ## Database
         self.prepare_site_db_scripts(self.sites)
-        subprocess.run(['cat','/docker-entrypoint-initdb.d/wordpress-db_init.sql'], stdout=sys.stdout)
+
         self.init_database(self.documents['database'])
 
         
@@ -80,6 +80,19 @@ class WpDockerBuilder:
             if not os.path.exists(conf_path):    
                 with open(conf_path, 'w') as file:
                     file.write(s.apache_config())
+            default_conf = '/etc/apache2/sites-enabled/default.conf'
+            if not os.path.exists(default_conf):
+                # There is not default, generate one
+                with open(default_conf, 'w') as file:
+                    file.write(f"""
+<VirtualHost *:80>
+  ServerName default
+  Redirect 404 /
+</VirtualHost>
+<VirtualHost _default_:80>
+  Redirect 404 /
+</VirtualHost>
+                    """ )
 
     def setup_wordpress(self):
         for s in self.sites:
