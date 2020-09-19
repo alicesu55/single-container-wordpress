@@ -27,6 +27,7 @@ RUN set -eux; \
 		libmagickwand-dev \
 		libpng-dev \
 # maintained here
+		curl \
         python3 \
         python3-pip \
         supervisor \
@@ -71,11 +72,33 @@ RUN set -eux; \
 # (replace all instances of "%h" with "%a" in LogFormat)
 	find /etc/apache2 -type f -name '*.conf' -exec sed -ri 's/([[:space:]]*LogFormat[[:space:]]+"[^"]*)%h([^"]*")/\1%a\2/g' '{}' +
 
+ENV WORDPRESS_VERSION 5.5.1
+ENV WORDPRESS_SHA1 d3316a4ffff2a12cf92fde8bfdd1ff8691e41931
+
+RUN set -ex; \
+	curl -o wordpress.tar.gz -fSL "https://wordpress.org/wordpress-${WORDPRESS_VERSION}.tar.gz"; \
+	echo "$WORDPRESS_SHA1 *wordpress.tar.gz" | sha1sum -c -; \
+# upstream tarballs include ./wordpress/ so this gives us /usr/src/wordpress
+	tar -xzf wordpress.tar.gz -C /usr/src/; \
+	rm wordpress.tar.gz; \
+	chown -R www-data:www-data /usr/src/wordpress; \
+# pre-create wp-content (and single-level children) for folks who want to bind-mount themes, etc so permissions are pre-created properly instead of root:root
+	mkdir wp-content; \
+	for dir in /usr/src/wordpress/wp-content/*/; do \
+		dir="$(basename "${dir%/}")"; \
+		mkdir "wp-content/$dir"; \
+	done; \
+	chown -R www-data:www-data wp-content; \
+	chmod -R 777 wp-content
 
 RUN pip3 install pyyaml
 
+RUN rm /etc/apache2/sites-enabled/000-default.conf
+
 COPY entrypoint.py /usr/local/bin/
+COPY init_mariadb.sh /usr/local/bin/
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY wp-docker-config.yml /etc/wp-docker-config.yml
+COPY setup-wp.sh /usr/local/bin/
 
 ENTRYPOINT [ "entrypoint.py" ]

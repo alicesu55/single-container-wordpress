@@ -14,7 +14,11 @@ sites:
     database_password: 9&2H$gb?cJR7z8cx
   
   mysite.com:
-    alias: "www.mysite.com"
+    alias:
+      - www.mysite.com
+      - blog.mysite.com
     ### You can control the name of the database if you like If not set.
     ### the default value is the same as your domain name
     # database_name: 
+
+    # database_user_name
