@@ -9,7 +9,7 @@ LABEL org.label-schema.build-date="$COMMIT_TIME" \
       org.label-schema.description="Running multiple wordpress instances in a single container" \
       org.label-schema.vcs-ref="$CI_APPLICATION_TAG_SHORT" \
       org.label-schema.vcs-url="https://github.com/alicesu55/single-container-wordpress" \
-      org.label-schema.vendor="Yoba Systems" \
+      org.label-schema.vendor="Alice Su's Studio" \
       org.label-schema.version="0.1" \
       org.label-schema.schema-version="0.1"
 
