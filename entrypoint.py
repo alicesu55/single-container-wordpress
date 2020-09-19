@@ -15,6 +15,8 @@ def random_password():
 
 class SiteSettings:
     def __init__(self, key, settings):
+        if settings is None:
+            settings=dict()
         self.domain=key
         self.safe_name = key.replace('.', '_')
         self.db_name = settings['database_name'] if 'database_name' in settings else self.safe_name
@@ -63,7 +65,7 @@ class WpDockerBuilder:
         for key in settings:
             self.sites.append(SiteSettings(key, settings[key]))
 
-    def build(self):
+    def build_lamp(self):
         self._parse_sites(self.documents['sites'])
 
         ## Database
@@ -78,6 +80,9 @@ class WpDockerBuilder:
             if not os.path.exists(conf_path):    
                 with open(conf_path, 'w') as file:
                     file.write(s.apache_config())
+
+    def setup_wordpress(self):
+        for s in self.sites:
             ## wordpress
             if not os.path.exists(s.site_folder):
                 os.mkdir(s.site_folder)
@@ -87,6 +92,7 @@ class WpDockerBuilder:
                 my_env["WORDPRESS_DB_NAME"] = s.db_name
                 my_env["WORDPRESS_DB_HOST"] = '127.0.0.1'
                 subprocess.run(["setup-wp.sh", 'apache2'], cwd=s.site_folder, env=my_env)
+        pass
 
     def init_database(self, db_settings):
         print("Initializing database: ", db_settings)
@@ -118,6 +124,9 @@ class WpDockerBuilder:
 if __name__=="__main__":
     builder = WpDockerBuilder('/etc/wp-docker-config.yml')
     builder.print()
-    builder.build()
+    builder.build_lamp()
 
-    subprocess.run(["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"])
+    p=subprocess.Popen (["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"], stdout=sys.stdout, stderr=sys.stderr)
+    builder.setup_wordpress()
+    p.wait()
+
