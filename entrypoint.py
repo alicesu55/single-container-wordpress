@@ -14,6 +14,9 @@ def random_password():
     return ''.join(random.choice(letters) for i in range(RANDOM_PASSWORD_LENGTH))
 
 class SiteSettings:
+    """Data model of a "site" from the "sites" section in the config file
+    """
+    
     def __init__(self, key, settings):
         if settings is None:
             settings=dict()
@@ -66,6 +69,9 @@ class WpDockerBuilder:
             self.sites.append(SiteSettings(key, settings[key]))
 
     def build_lamp(self):
+        """ Configure the LAMP server (bad name), including Mariadb, and Apache.
+            The apache settings will include the configurations of all sites
+        """
         self._parse_sites(self.documents['sites'])
 
         ## Database
@@ -95,6 +101,8 @@ class WpDockerBuilder:
                     """ )
 
     def setup_wordpress(self):
+        """ Configure all the wordpress sites.
+        """
         for s in self.sites:
             ## wordpress
             if not os.path.exists(s.site_folder):
@@ -108,6 +116,14 @@ class WpDockerBuilder:
         pass
 
     def init_database(self, db_settings):
+        """Initialize the database if it is not already initialized
+
+        Args:
+            db_settings (dict): The settings of the database from the config file
+                                Important fields include:
+                                root_password_random: True is the root password shall be generated randomly
+                                root_password: The root password of the database, only effective if root_password_random is False
+        """
         print("Initializing database ... ")
         if 'root_password_random' in db_settings and db_settings['root_password_random']==True:
             self.db_password = random_password()
@@ -125,13 +141,17 @@ class WpDockerBuilder:
             print("Database is set up")
 
     def prepare_site_db_scripts(self, sites):
+        """ Generate a SQL file that configures the databases of all sites.
+            Args:
+                sites: A list of class SiteSettings.
+        """
         with open ('/docker-entrypoint-initdb.d/wordpress-db_init.sql', 'a') as file:
             for s in sites:
                 file.write(s.db_script())
 
     def print(self):
+        # Debug prints
         for item, doc in self.documents.items():
-
             print(item, ":", doc)
 
 if __name__=="__main__":
