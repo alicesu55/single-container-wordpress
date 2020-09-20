@@ -1,8 +1,16 @@
-# Single Container Wordpress, Database Included
+# Single Container WordPress, Database Included
 
-This docker image allow you to run many Wordpress sites in a single container easily.
+This docker image allow you to run many WordPress sites in a single container easily.
 An instance of Mariadb runs inside the image as a service to serve your sites.
 
+
+## Why do you want to use this
+
+Apparently, the first question you may ask is, why do you want to squeeze all these things together, multiple WordPress sites and a database. Of course, the standard way to run sites in production is to use docker compose to run multiple containers, with each of them running a dedicated task.
+
+The answer is simplicity and cost. Many cloud providers (e.g., [kintohub](https://www.kintohub.com/)) offer free services to run a small number of containers for free. You may not want to use multiple containers unless you have to.
+
+## Quick Start
 
 Docker pull command:
 
