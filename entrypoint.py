@@ -16,7 +16,7 @@ def random_password():
 class SiteSettings:
     """Data model of a "site" from the "sites" section in the config file
     """
-    
+
     def __init__(self, key, settings):
         if settings is None:
             settings=dict()
@@ -99,6 +99,9 @@ class WpDockerBuilder:
   Redirect 404 /
 </VirtualHost>
                     """ )
+        self.setup_backup(self.documents['backups'])
+
+
 
     def setup_wordpress(self):
         """ Configure all the wordpress sites.
@@ -113,7 +116,42 @@ class WpDockerBuilder:
                 my_env["WORDPRESS_DB_NAME"] = s.db_name
                 my_env["WORDPRESS_DB_HOST"] = '127.0.0.1'
                 subprocess.run(["setup-wp.sh", 'apache2'], cwd=s.site_folder, env=my_env)
-        pass
+
+    def setup_backup(self, backup_settings):
+        """Setup the backups using cron job
+        """
+        if backup_settings is None:
+            return
+
+        print('Backup settings', backup_settings)
+
+        s3_backup = backup_settings['s3']
+        if s3_backup is not None and s3_backup['schedule'] is not None:
+            subprocess.run('aws_install.sh', stdout=sys.stdout, stderr=sys.stderr)
+
+            if 'schedule' not in s3_backup:
+                raise ValueError('Must have "schedule" field in "s3"')
+            if 'bucket' not in s3_backup:
+                raise ValueError('Must have "bucket" field in "s3"')
+
+            with open('/etc/backup_credentials.sh', 'a') as file:
+                file.write(f"DB_PASSWORD={self.db_password}\n")
+                file.write(f"BACKUP_BUCKET={s3_backup['bucket']}\n")
+
+                if 'aws_access_key_id' in s3_backup:
+                    file.write(f"AWS_ACCESS_KEY_ID={s3_backup['aws_access_key_id']}\n")
+
+                if 'aws_secret_access_key' in s3_backup:
+                    file.write(f"AWS_SECRET_ACCESS_KEY={s3_backup['aws_secret_access_key']}\n")
+
+                if 'aws_secret_access_key' in s3_backup:
+                    file.write(f"AWS_SECRET_ACCESS_KEY={s3_backup['aws_secret_access_key']}\n")
+
+                if 'aws_region' in s3_backup:
+                    file.write(f"AWS_REGION={s3_backup['aws_region']}\n")
+
+            with open('/etc/crontab', 'a') as file:
+                file.write(f"{s3_backup['schedule']}  root    /usr/local/bin/s3_backup.sh \n")
 
     def init_database(self, db_settings):
         """Initialize the database if it is not already initialized

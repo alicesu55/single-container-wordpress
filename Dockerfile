@@ -27,14 +27,16 @@ RUN set -eux; \
 		libmagickwand-dev \
 		libpng-dev \
 # maintained here
+		apache2 \
+		cron \
 		curl \
+		libapache2-mod-php \
+		php \
+		php-mysql \
         python3 \
         python3-pip \
         supervisor \
-		apache2 \
-		php \
-		libapache2-mod-php \
-		php-mysql \
+		unzip \
 	; \
 	rm -rf /var/lib/apt/lists/*
 
@@ -97,8 +99,10 @@ RUN rm /etc/apache2/sites-enabled/000-default.conf
 
 COPY entrypoint.py /usr/local/bin/
 COPY init_mariadb.sh /usr/local/bin/
+COPY s3_backup.sh /usr/local/bin/
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY wp-docker-config.yml /etc/wp-docker-config.yml
 COPY setup-wp.sh /usr/local/bin/
+COPY aws_install.sh /usr/local/bin/
 
 ENTRYPOINT [ "entrypoint.py" ]
