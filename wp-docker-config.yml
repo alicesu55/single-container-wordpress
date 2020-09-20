@@ -26,3 +26,17 @@ sites:
   t3.alicesu.ml:
   t4.alicesu.ml:
   t5.alicesu.ml:
+
+backups:
+  s3:
+    ## Schedule in Cron schedule expression, see: https://crontab.guru/
+    ## The schedule is required. Without it, the backup is disabled.
+    schedule: "0 2 * * *"
+    bucket: your_s3_bucket_name
+
+    ## AWS key and secret key if you want to hard code them here.
+    ## if  not provided, environment variables are used: AWS_ACCESS_KEY_ID, 
+    ## AWS_SECRET_ACCESS_KEY, and AWS_REGION
+    aws_access_key_id: your_aws_key
+    aws_secret_access_key: your_aws_secret_key
+    aws_region: us-east-1
