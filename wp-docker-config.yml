@@ -33,6 +33,9 @@ backups:
     ## Schedule in Cron schedule expression, see: https://crontab.guru/
     ## The schedule is required. Without it, the backup is disabled.
     schedule: "0 2 * * *"
+
+    ## The bucket to store the backup. Optionally, you can provide this value
+    ## using an environment variable BACKUP_BUCKET
     bucket: your_s3_bucket_name
 
     ## If enabled, when container starts with any of the two folders

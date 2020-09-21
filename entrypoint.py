@@ -135,12 +135,12 @@ class WpDockerBuilder:
 
             if 'schedule' not in s3_backup:
                 raise ValueError('Must have "schedule" field in "s3"')
-            if 'bucket' not in s3_backup:
-                raise ValueError('Must have "bucket" field in "s3"')
 
             with open('/etc/backup_credentials.sh', 'a') as file:
                 file.write(f"DB_PASSWORD={self.db_password}\n")
-                file.write(f"BACKUP_BUCKET={s3_backup['bucket']}\n")
+
+                if 'bucket' in s3_backup:
+                    file.write(f"BACKUP_BUCKET={s3_backup['bucket']}\n")
 
                 if 'aws_access_key_id' in s3_backup:
                     file.write(f"AWS_ACCESS_KEY_ID={s3_backup['aws_access_key_id']}\n")
