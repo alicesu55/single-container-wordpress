@@ -106,5 +106,6 @@ COPY wp-docker-config.yml /etc/wp-docker-config.yml
 COPY setup-wp.sh /usr/local/bin/
 COPY aws_install.sh /usr/local/bin/
 COPY init_from_s3_backup.sh /usr/local/bin/
+COPY mem /etc/mem
 
 ENTRYPOINT [ "entrypoint.py" ]

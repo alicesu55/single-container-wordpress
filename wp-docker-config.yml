@@ -1,3 +1,9 @@
+system:
+  ## The available amount of memory, e.g., 256m, 1g, 3.5g
+  ## The configuration will be automatically generated to provide the best
+  ## performance while fitting into the memory
+  memory_limit: 256m
+
 # The settings for the database (mariadb)
 database:
   root_password_random: true

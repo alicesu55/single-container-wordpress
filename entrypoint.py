@@ -75,7 +75,8 @@ class WpDockerBuilder:
             The apache settings will include the configurations of all sites
         """
         self.init_db_password(self.documents['database'])
-
+        if 'system' in self.documents:
+            self.memory_config(self.documents['system'])
         # backup and restore
         self.backup_restore(self.documents['backups'])
 
@@ -120,6 +121,23 @@ class WpDockerBuilder:
                 my_env["WORDPRESS_DB_NAME"] = s.db_name
                 my_env["WORDPRESS_DB_HOST"] = '127.0.0.1'
                 subprocess.run(["setup-wp.sh", 'apache2'], cwd=s.site_folder, env=my_env)
+
+    def memory_config(self, mem_settings):
+        print("Apply settings impacting memory: ", mem_settings)
+        mem_mb=2048
+        if 'memory_limit' in mem_settings:
+            mem_str = mem_settings['memory_limit']
+            if mem_str.endswith('m'):
+                mem_mb=float(mem_str[:-1])
+            elif mem_str.endswith('g'):
+                mem_mb=float(mem_str[:-1])*1024
+        print('Optimizing for memory: ', mem_mb)
+        if mem_mb<2048:
+            folder='/etc/mem/128/'
+        else:
+            folder='/etc/mem/2048/'
+        subprocess.run(['cp', '-f', folder+'50-server.cnf', '/etc/mysql/mariadb.conf.d/50-server.cnf'], stdout=sys.stdout, stderr=sys.stderr)
+        subprocess.run(['cp', '-f', folder+'mpm_prefork.conf', '/etc/apache2/mods-available/mpm_prefork.conf'], stdout=sys.stdout, stderr=sys.stderr)
 
     def backup_restore(self, backup_settings):
         """Setup the backups using cron job
