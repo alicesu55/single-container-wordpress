@@ -27,12 +27,18 @@ sites:
   t4.alicesu.ml:
   t5.alicesu.ml:
 
+## The optional auto backup and restore plan
 backups:
   s3:
     ## Schedule in Cron schedule expression, see: https://crontab.guru/
     ## The schedule is required. Without it, the backup is disabled.
     schedule: "0 2 * * *"
     bucket: your_s3_bucket_name
+
+    ## If enabled, when container starts with any of the two folders
+    ##  /var/www/html and var/lib/mysql being empty,
+    ## it be restored from the backup on S3 if available.
+    auto_restore: true
 
     ## AWS key and secret key if you want to hard code them here.
     ## if  not provided, environment variables are used: AWS_ACCESS_KEY_ID, 
