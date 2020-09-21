@@ -30,9 +30,11 @@ class SiteSettings:
 
     def db_script(self):
         return f"""
-            CREATE DATABASE IF NOT EXISTS {self.db_name}; 
-            CREATE USER '{self.db_username}'@'%' IDENTIFIED BY '{self.db_password}' ;
-            GRANT ALL ON {self.db_name}.* TO '{self.db_username}'@'%' ;
+            CREATE DATABASE IF NOT EXISTS {self.db_name};
+            DROP USER IF EXISTS '{self.db_username}'@'%' ;
+            CREATE USER  '{self.db_username}'@'%' IDENTIFIED BY '{self.db_password}' ;
+            GRANT ALL ON {self.db_name}.* TO '{self.db_username}'@'%' IDENTIFIED BY '{self.db_password}';
+            FLUSH PRIVILEGES;
         """
 
     def apache_config(self):
@@ -72,8 +74,12 @@ class WpDockerBuilder:
         """ Configure the LAMP server (bad name), including Mariadb, and Apache.
             The apache settings will include the configurations of all sites
         """
-        self._parse_sites(self.documents['sites'])
+        self.init_db_password(self.documents['database'])
 
+        # backup and restore
+        self.backup_restore(self.documents['backups'])
+
+        self._parse_sites(self.documents['sites'])
         ## Database
         self.prepare_site_db_scripts(self.sites)
 
@@ -99,8 +105,6 @@ class WpDockerBuilder:
   Redirect 404 /
 </VirtualHost>
                     """ )
-        self.setup_backup(self.documents['backups'])
-
 
 
     def setup_wordpress(self):
@@ -117,7 +121,7 @@ class WpDockerBuilder:
                 my_env["WORDPRESS_DB_HOST"] = '127.0.0.1'
                 subprocess.run(["setup-wp.sh", 'apache2'], cwd=s.site_folder, env=my_env)
 
-    def setup_backup(self, backup_settings):
+    def backup_restore(self, backup_settings):
         """Setup the backups using cron job
         """
         if backup_settings is None:
@@ -151,7 +155,18 @@ class WpDockerBuilder:
                     file.write(f"AWS_REGION={s3_backup['aws_region']}\n")
 
             with open('/etc/crontab', 'a') as file:
-                file.write(f"{s3_backup['schedule']}  root    /usr/local/bin/s3_backup.sh \n")
+                file.write(f"{s3_backup['schedule']}  root    /usr/local/bin/s3_backup.sh>/proc/1/fd/1\n")
+
+            if 'auto_restore' in s3_backup and s3_backup['auto_restore']:
+                subprocess.run(['init_from_s3_backup.sh'], stdout=sys.stdout, stderr=sys.stderr)
+
+    def init_db_password(self, db_settings):
+        if 'root_password_random' in db_settings and db_settings['root_password_random']==True:
+            self.db_password = random_password()
+        elif 'root_password' in db_settings:
+            self.db_password=db_settings['root_password']
+        if self.db_password is None or len(self.db_password)==0:
+            raise ValueError("In database section, please set root_password or use root_password_random:true")
 
     def init_database(self, db_settings):
         """Initialize the database if it is not already initialized
@@ -163,12 +178,6 @@ class WpDockerBuilder:
                                 root_password: The root password of the database, only effective if root_password_random is False
         """
         print("Initializing database ... ")
-        if 'root_password_random' in db_settings and db_settings['root_password_random']==True:
-            self.db_password = random_password()
-        elif 'root_password' in db_settings:
-            self.db_password=db_settings['root_password']
-        if self.db_password is None or len(self.db_password)==0:
-            raise ValueError("In database section, please set root_password or use root_password_random:true")
 
         my_env = os.environ.copy()
         my_env["MYSQL_ROOT_PASSWORD"] = self.db_password
@@ -183,7 +192,7 @@ class WpDockerBuilder:
             Args:
                 sites: A list of class SiteSettings.
         """
-        with open ('/docker-entrypoint-initdb.d/wordpress-db_init.sql', 'a') as file:
+        with open ('/docker-entrypoint-initdb.d/10-wordpress-db_init.sql', 'a') as file:
             for s in sites:
                 file.write(s.db_script())
 

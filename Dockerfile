@@ -96,6 +96,7 @@ RUN set -ex; \
 RUN pip3 install pyyaml
 
 RUN rm /etc/apache2/sites-enabled/000-default.conf
+RUN rm -rf /var/www/html/*
 
 COPY entrypoint.py /usr/local/bin/
 COPY init_mariadb.sh /usr/local/bin/
@@ -104,5 +105,6 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY wp-docker-config.yml /etc/wp-docker-config.yml
 COPY setup-wp.sh /usr/local/bin/
 COPY aws_install.sh /usr/local/bin/
+COPY init_from_s3_backup.sh /usr/local/bin/
 
 ENTRYPOINT [ "entrypoint.py" ]
