@@ -107,5 +107,6 @@ COPY setup-wp.sh /usr/local/bin/
 COPY aws_install.sh /usr/local/bin/
 COPY init_from_s3_backup.sh /usr/local/bin/
 COPY mem /etc/mem
+COPY conf/apache2.conf /etc/apache2/apache2.conf
 
 ENTRYPOINT [ "entrypoint.py" ]
