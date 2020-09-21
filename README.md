@@ -1,12 +1,11 @@
 # Single Container WordPress, Database Included
 
-This docker image allow you to run many WordPress sites in a single container easily.
-An instance of Mariadb runs inside the image as a service to serve your sites.
+This docker image allows you to run many WordPress sites in a single container easily. An instance of MariaDB runs inside the image as a service to serve your sites.
 
 
 ## Why do you want to use this
 
-Apparently, the first question you may ask is, why do you want to squeeze all these things together, multiple WordPress sites and a database. Of course, the standard way to run sites in production is to use docker compose to run multiple containers, with each of them running a dedicated task.
+The first question you may ask is, why do you want to squeeze all these things together, multiple WordPress sites, and a database. Of course, the standard way to run sites in production is to use docker-compose to run multiple containers, with each of them running a dedicated task.
 
 The answer is simplicity and cost. Many cloud providers (e.g., [kintohub](https://www.kintohub.com/)) offer free services to run a small number of containers for free. You may not want to use multiple containers unless you have to.
 
@@ -48,7 +47,7 @@ For documents, please refer to [the example config file](https://github.com/alic
 
 ## Data Persistance
 
-To avoid **loosing all your data** when your contain restarts for any reason, provide persistance storage by mounting to the following directories:
+To avoid **losing all your data** when your contain restarts for any reason, provide persistance storage by mounting to the following directories:
 
 ```bash
 # To keep your database:
@@ -59,6 +58,38 @@ To avoid **loosing all your data** when your contain restarts for any reason, pr
 
 ```
 
+## Automatic Backup and Restore
 
+Optionally, you can set a schedule in the config file to automatically backup your sites and database to Amazon AWS S3. See all the options in [the example config file](https://github.com/alicesu55/single-container-wordpress/blob/master/wp-docker-config.yml).
 
+If an optional boolean field `auto_restore` is set, and the key folders are empty when the container is started, the data will be restored from the backup.
+
+If the container runs in an environment with no persistent storage, this feature can be used to allow your data to survive container rebuilds.
+
+```YAML
+## The optional auto backup and restore plan
+backups:
+  s3:
+    ## Schedule in Cron schedule expression, see: https://crontab.guru/
+    ## The schedule is required. Without it, the backup is disabled.
+    schedule: "0 2 * * *"
+    ## If enabled, when container starts with any of the two folders
+    ##  /var/www/html and var/lib/mysql being empty,
+    ## it be restored from the backup on S3 if available.
+    auto_restore: true
+```
+
+## Fitting into Containers with Tight Memory Limits
+
+If your container has a tight memory limit, add the limit in the system section. This image will attempt to configure the components to optimize for a small memory footprint.
+
+```YAML
+system:
+  ## The available amount of memory, e.g., 256m, 1g, 3.5g
+  ## The configuration will be automatically generated to provide the best
+  ## performance while fitting into the memory
+  ### Warning: DO NOT YOU this feature if you plan to customize the config files 
+  ### of  php, apache, and MariaDB. Your config files may be overwritten.
+  memory_limit: 256m
+```
 

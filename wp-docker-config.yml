@@ -2,6 +2,8 @@ system:
   ## The available amount of memory, e.g., 256m, 1g, 3.5g
   ## The configuration will be automatically generated to provide the best
   ## performance while fitting into the memory
+  ### Warning: DO NOT YOU this feature if you plan to customize the config files 
+  ### of  php, apache, and Mariadb. Your config files may be overwritten.
   memory_limit: 256m
 
 # The settings for the database (mariadb)
