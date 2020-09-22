@@ -159,23 +159,23 @@ class WpDockerBuilder:
 
                 if 'bucket' in s3_backup:
                     file.write(f"export BACKUP_BUCKET={s3_backup['bucket']}\n")
-                else:
-                    file.write(f"export BACKUP_BUCKET={os.environ['bucket']}\n")
+                elif 'BACKUP_BUCKET' in os.environ:
+                    file.write(f"export BACKUP_BUCKET={os.environ['BACKUP_BUCKET']}\n")
 
                 if 'aws_access_key_id' in s3_backup:
                     file.write(f"export AWS_ACCESS_KEY_ID={s3_backup['aws_access_key_id']}\n")
-                else:
-                    file.write(f"export AWS_ACCESS_KEY_ID={os.environ['aws_access_key_id']}\n")
+                elif 'AWS_ACCESS_KEY_ID' in os.environ:
+                    file.write(f"export AWS_ACCESS_KEY_ID={os.environ['AWS_ACCESS_KEY_ID']}\n")
 
                 if 'aws_secret_access_key' in s3_backup:
                     file.write(f"export AWS_SECRET_ACCESS_KEY={s3_backup['aws_secret_access_key']}\n")
-                else:
-                    file.write(f"export AWS_SECRET_ACCESS_KEY={os.environ['aws_secret_access_key']}\n")
+                elif 'AWS_SECRET_ACCESS_KEY' in os.environ:
+                    file.write(f"export AWS_SECRET_ACCESS_KEY={os.environ['AWS_SECRET_ACCESS_KEY']}\n")
 
                 if 'aws_region' in s3_backup:
                     file.write(f"AWS_REGION={s3_backup['aws_region']}\n")
-                else:
-                    file.write(f"AWS_REGION={os.environ['aws_region']}\n")
+                elif 'AWS_REGION' in os.environ:
+                    file.write(f"AWS_REGION={os.environ['AWS_REGION']}\n")
 
             with open('/etc/crontab', 'a') as file:
                 file.write(f"{s3_backup['schedule']}  root    /usr/local/bin/s3_backup.sh>/proc/1/fd/1 2>&1\n")
