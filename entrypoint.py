@@ -155,25 +155,26 @@ class WpDockerBuilder:
                 raise ValueError('Must have "schedule" field in "s3"')
 
             with open('/etc/backup_credentials.sh', 'a') as file:
-                file.write(f"DB_PASSWORD={self.db_password}\n")
+                file.write(f"export DB_PASSWORD={self.db_password}\n")
 
                 if 'bucket' in s3_backup:
-                    file.write(f"BACKUP_BUCKET={s3_backup['bucket']}\n")
+                    file.write(f"export BACKUP_BUCKET={s3_backup['bucket']}\n")
 
                 if 'aws_access_key_id' in s3_backup:
-                    file.write(f"AWS_ACCESS_KEY_ID={s3_backup['aws_access_key_id']}\n")
+                    file.write(f"export AWS_ACCESS_KEY_ID={s3_backup['aws_access_key_id']}\n")
 
                 if 'aws_secret_access_key' in s3_backup:
-                    file.write(f"AWS_SECRET_ACCESS_KEY={s3_backup['aws_secret_access_key']}\n")
+                    file.write(f"export AWS_SECRET_ACCESS_KEY={s3_backup['aws_secret_access_key']}\n")
 
                 if 'aws_secret_access_key' in s3_backup:
-                    file.write(f"AWS_SECRET_ACCESS_KEY={s3_backup['aws_secret_access_key']}\n")
+                    file.write(f"export AWS_SECRET_ACCESS_KEY={s3_backup['aws_secret_access_key']}\n")
 
                 if 'aws_region' in s3_backup:
                     file.write(f"AWS_REGION={s3_backup['aws_region']}\n")
 
             with open('/etc/crontab', 'a') as file:
-                file.write(f"{s3_backup['schedule']}  root    /usr/local/bin/s3_backup.sh>/proc/1/fd/1\n")
+                file.write(f"{s3_backup['schedule']}  root    /usr/local/bin/s3_backup.sh>/proc/1/fd/1 2>&1\n")
+                file.write('\n')
 
             if 'auto_restore' in s3_backup and s3_backup['auto_restore']:
                 subprocess.run(['init_from_s3_backup.sh'], stdout=sys.stdout, stderr=sys.stderr)
@@ -225,5 +226,6 @@ if __name__=="__main__":
 
     p=subprocess.Popen (["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"], stdout=sys.stdout, stderr=sys.stderr)
     builder.setup_wordpress()
+    subprocess.run(['cat', '/etc/crontab'])
     p.wait()
 

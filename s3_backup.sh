@@ -5,11 +5,6 @@ source /etc/backup_credentials.sh
 
 sync
 
-# These exports are not in backup_credentials.sh, in order to keep the generated
-# file short
-export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-export AWS_REGION=$AWS_REGION
 export AWS_DEFAULT_REGION='us-west-1'
 
 # Use a | as a separator
