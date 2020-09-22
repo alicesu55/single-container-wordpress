@@ -22,6 +22,6 @@ if [ "$(ls -A /var/lib/mysql)" ]; then
 else
     echo "The datanase directory is empty, restoring from S3"
     aws s3 cp s3://$BACKUP_BUCKET/backup_databases.sql.gz /tmp/backup_databases.sql.gz
-    gunzip -c /tmp/backup_databases.sql.gz > /docker-entrypoint-initdb.d/30-restore_from_s3.sql
+    gunzip -c /tmp/backup_databases.sql.gz > /docker-entrypoint-initdb.d/10-restore_from_s3.sql
 fi
 

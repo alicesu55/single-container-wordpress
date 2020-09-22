@@ -216,7 +216,7 @@ class WpDockerBuilder:
             Args:
                 sites: A list of class SiteSettings.
         """
-        with open ('/docker-entrypoint-initdb.d/10-wordpress-db_init.sql', 'a') as file:
+        with open ('/docker-entrypoint-initdb.d/40-wordpress-db_init.sql', 'a') as file:
             for s in sites:
                 file.write(s.db_script())
 
