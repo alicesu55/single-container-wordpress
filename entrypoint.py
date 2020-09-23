@@ -31,9 +31,9 @@ class SiteSettings:
     def db_script(self):
         return f"""
             CREATE DATABASE IF NOT EXISTS {self.db_name};
-            DROP USER IF EXISTS '{self.db_username}'@'%' ;
-            CREATE USER  '{self.db_username}'@'%' IDENTIFIED BY '{self.db_password}' ;
-            GRANT ALL ON {self.db_name}.* TO '{self.db_username}'@'%' IDENTIFIED BY '{self.db_password}';
+            CREATE USER  IF NOT EXISTS '{self.db_username}'@'%' IDENTIFIED BY '{self.db_password}' ;
+            FLUSH PRIVILEGES;
+            GRANT ALL ON {self.db_name}.* TO '{self.db_username}'@'%';
             FLUSH PRIVILEGES;
         """
 
@@ -219,6 +219,9 @@ class WpDockerBuilder:
         with open ('/docker-entrypoint-initdb.d/40-wordpress-db_init.sql', 'a') as file:
             for s in sites:
                 file.write(s.db_script())
+            file.write(f"""
+ALTER USER 'root'@'localhost' IDENTIFIED BY '{self.db_password}';
+            """)
 
     def print(self):
         # Debug prints
