@@ -21,3 +21,4 @@ aws configure list
 
 aws s3 cp /tmp/backup_databases.sql.gz s3://$BACKUP_BUCKET/
 aws s3 cp /tmp/backup_files.tar.gz s3://$BACKUP_BUCKET/
+aws s3 cp /etc/db_pswd.json s3://$BACKUP_BUCKET/

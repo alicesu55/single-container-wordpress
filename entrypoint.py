@@ -6,6 +6,7 @@ import random
 import string
 import os
 import sys
+import json
 
 
 def random_password():
@@ -59,10 +60,13 @@ class SiteSettings:
         return config
 
 
+ROOT_PASSWORD_KEY='root password' # Make it an invalid domain to avoid conflicts
+PASSWORD_FILE = '/etc/db_pswd.json'
+
 class WpDockerBuilder:
     def __init__(self, config_file):
-        self.db_password = None
         self.sites = []
+        self.db_passwords=dict()
         with open(config_file) as file:
             self.documents = yaml.full_load(file)
 
@@ -74,13 +78,13 @@ class WpDockerBuilder:
         """ Configure the LAMP server (bad name), including Mariadb, and Apache.
             The apache settings will include the configurations of all sites
         """
+        self._parse_sites(self.documents['sites'])
         self.init_db_password(self.documents['database'])
         if 'system' in self.documents:
             self.memory_config(self.documents['system'])
         # backup and restore
         self.backup_restore(self.documents['backups'])
 
-        self._parse_sites(self.documents['sites'])
         ## Database
         self.prepare_site_db_scripts(self.sites)
 
@@ -139,6 +143,31 @@ class WpDockerBuilder:
         subprocess.run(['cp', '-f', folder+'50-server.cnf', '/etc/mysql/mariadb.conf.d/50-server.cnf'], stdout=sys.stdout, stderr=sys.stderr)
         subprocess.run(['cp', '-f', folder+'mpm_prefork.conf', '/etc/apache2/mods-available/mpm_prefork.conf'], stdout=sys.stdout, stderr=sys.stderr)
 
+    def _create_backup_credentials(self, backup_settings):
+        s3_backup = backup_settings['s3']
+        with open('/etc/backup_credentials.sh', 'a') as file:
+            file.write(f"export DB_PASSWORD={self.db_passwords[ROOT_PASSWORD_KEY]}\n")
+
+            if 'bucket' in s3_backup:
+                file.write(f"export BACKUP_BUCKET={s3_backup['bucket']}\n")
+            elif 'BACKUP_BUCKET' in os.environ:
+                file.write(f"export BACKUP_BUCKET={os.environ['BACKUP_BUCKET']}\n")
+
+            if 'aws_access_key_id' in s3_backup:
+                file.write(f"export AWS_ACCESS_KEY_ID={s3_backup['aws_access_key_id']}\n")
+            elif 'AWS_ACCESS_KEY_ID' in os.environ:
+                file.write(f"export AWS_ACCESS_KEY_ID={os.environ['AWS_ACCESS_KEY_ID']}\n")
+
+            if 'aws_secret_access_key' in s3_backup:
+                file.write(f"export AWS_SECRET_ACCESS_KEY={s3_backup['aws_secret_access_key']}\n")
+            elif 'AWS_SECRET_ACCESS_KEY' in os.environ:
+                file.write(f"export AWS_SECRET_ACCESS_KEY={os.environ['AWS_SECRET_ACCESS_KEY']}\n")
+
+            if 'aws_region' in s3_backup:
+                file.write(f"AWS_REGION={s3_backup['aws_region']}\n")
+            elif 'AWS_REGION' in os.environ:
+                file.write(f"AWS_REGION={os.environ['AWS_REGION']}\n")
+
     def backup_restore(self, backup_settings):
         """Setup the backups using cron job
         """
@@ -154,43 +183,39 @@ class WpDockerBuilder:
             if 'schedule' not in s3_backup:
                 raise ValueError('Must have "schedule" field in "s3"')
 
-            with open('/etc/backup_credentials.sh', 'a') as file:
-                file.write(f"export DB_PASSWORD={self.db_password}\n")
+            self._create_backup_credentials(backup_settings)
+            if 'auto_restore' in s3_backup and s3_backup['auto_restore']:
+                subprocess.run(['init_from_s3_backup.sh'], stdout=sys.stdout, stderr=sys.stderr)
 
-                if 'bucket' in s3_backup:
-                    file.write(f"export BACKUP_BUCKET={s3_backup['bucket']}\n")
-                elif 'BACKUP_BUCKET' in os.environ:
-                    file.write(f"export BACKUP_BUCKET={os.environ['BACKUP_BUCKET']}\n")
+                if os.path.exists(PASSWORD_FILE):
+                    with open(PASSWORD_FILE) as json_file:
+                        restored  = json.load(json_file)
+                        for key, value in restored.items():
+                            self.db_passwords[key] = value
+                        for s in self.sites:
+                            s.db_password = self.db_passwords[s.domain]
+                        self._create_backup_credentials(backup_settings)
+                else:
+                    print('[ERR]: The password file does not exist ', PASSWORD_FILE)
 
-                if 'aws_access_key_id' in s3_backup:
-                    file.write(f"export AWS_ACCESS_KEY_ID={s3_backup['aws_access_key_id']}\n")
-                elif 'AWS_ACCESS_KEY_ID' in os.environ:
-                    file.write(f"export AWS_ACCESS_KEY_ID={os.environ['AWS_ACCESS_KEY_ID']}\n")
-
-                if 'aws_secret_access_key' in s3_backup:
-                    file.write(f"export AWS_SECRET_ACCESS_KEY={s3_backup['aws_secret_access_key']}\n")
-                elif 'AWS_SECRET_ACCESS_KEY' in os.environ:
-                    file.write(f"export AWS_SECRET_ACCESS_KEY={os.environ['AWS_SECRET_ACCESS_KEY']}\n")
-
-                if 'aws_region' in s3_backup:
-                    file.write(f"AWS_REGION={s3_backup['aws_region']}\n")
-                elif 'AWS_REGION' in os.environ:
-                    file.write(f"AWS_REGION={os.environ['AWS_REGION']}\n")
+            # need to dump even if we have just loaded. New sites could have been added
+            with open(PASSWORD_FILE, 'w') as json_file:
+                json_file.write(json.dumps(self.db_passwords))
 
             with open('/etc/crontab', 'a') as file:
                 file.write(f"{s3_backup['schedule']}  root    /usr/local/bin/s3_backup.sh>/proc/1/fd/1 2>&1\n")
                 file.write('\n')
 
-            if 'auto_restore' in s3_backup and s3_backup['auto_restore']:
-                subprocess.run(['init_from_s3_backup.sh'], stdout=sys.stdout, stderr=sys.stderr)
-
     def init_db_password(self, db_settings):
         if 'root_password_random' in db_settings and db_settings['root_password_random']==True:
-            self.db_password = random_password()
+            self.db_passwords[ROOT_PASSWORD_KEY] = random_password()
         elif 'root_password' in db_settings:
-            self.db_password=db_settings['root_password']
-        if self.db_password is None or len(self.db_password)==0:
+            self.db_passwords[ROOT_PASSWORD_KEY] = db_settings['root_password']
+        if self.db_passwords[ROOT_PASSWORD_KEY] is None or len(self.db_passwords[ROOT_PASSWORD_KEY])==0:
             raise ValueError("In database section, please set root_password or use root_password_random:true")
+
+        for s in self.sites:
+            self.db_passwords[s.domain]=s.db_password
 
     def init_database(self, db_settings):
         """Initialize the database if it is not already initialized
@@ -204,7 +229,7 @@ class WpDockerBuilder:
         print("Initializing database ... ")
 
         my_env = os.environ.copy()
-        my_env["MYSQL_ROOT_PASSWORD"] = self.db_password
+        my_env["MYSQL_ROOT_PASSWORD"] = self.db_passwords[ROOT_PASSWORD_KEY]
         result = subprocess.run(["init_mariadb.sh", "mysqld"], env=my_env, stdout=sys.stdout, stderr=sys.stderr)
         if result.returncode!=0:
             raise SystemError('Error initializing the database')
@@ -219,9 +244,7 @@ class WpDockerBuilder:
         with open ('/docker-entrypoint-initdb.d/40-wordpress-db_init.sql', 'a') as file:
             for s in sites:
                 file.write(s.db_script())
-            file.write(f"""
-ALTER USER 'root'@'localhost' IDENTIFIED BY '{self.db_password}';
-            """)
+
 
     def print(self):
         # Debug prints

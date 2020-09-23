@@ -20,8 +20,9 @@ if [ "$(ls -A /var/lib/mysql)" ]; then
     echo "The database directory is not empty. Not restoring from S3"
      
 else
-    echo "The datanase directory is empty, restoring from S3"
+    echo "The database directory is empty, restoring from S3"
     aws s3 cp s3://$BACKUP_BUCKET/backup_databases.sql.gz /tmp/backup_databases.sql.gz
     gunzip -c /tmp/backup_databases.sql.gz > /docker-entrypoint-initdb.d/10-restore_from_s3.sql
+    aws s3 cp s3://$BACKUP_BUCKET/db_pswd.json /etc/db_pswd.json
 fi
 
