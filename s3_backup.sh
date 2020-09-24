@@ -19,6 +19,20 @@ tar -cpzf /tmp/backup_files.tar.gz /var/www/html/
 
 aws configure list
 
-aws s3 cp /tmp/backup_databases.sql.gz s3://$BACKUP_BUCKET/
-aws s3 cp /tmp/backup_files.tar.gz s3://$BACKUP_BUCKET/
-aws s3 cp /etc/db_pswd.json s3://$BACKUP_BUCKET/
+if [ ! md5sum -c /tmp/backup_databases.sql.gz.md5 ]
+then
+    aws s3 cp /tmp/backup_databases.sql.gz s3://$BACKUP_BUCKET/
+    md5sum /tmp/backup_databases.sql.gz >/tmp/backup_databases.sql.gz.md5
+fi
+
+if [ ! md5sum -c /tmp/backup_databases.sql.gz.md5 ]
+then
+    aws s3 cp /tmp/backup_files.tar.gz s3://$BACKUP_BUCKET/
+    md5sum /tmp/backup_files.tar.gz >/tmp/backup_files.tar.gz.md5
+fi
+
+if [ ! md5sum -c /etc/db_pswd.json.md5 ]
+then
+    aws s3 cp /etc/db_pswd.json s3://$BACKUP_BUCKET/
+    md5sum /etc/db_pswd.json >/etc/db_pswd.json.md5
+fi
