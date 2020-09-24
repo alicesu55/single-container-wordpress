@@ -142,6 +142,7 @@ class WpDockerBuilder:
             folder='/etc/mem/2048/'
         subprocess.run(['cp', '-f', folder+'50-server.cnf', '/etc/mysql/mariadb.conf.d/50-server.cnf'], stdout=sys.stdout, stderr=sys.stderr)
         subprocess.run(['cp', '-f', folder+'mpm_prefork.conf', '/etc/apache2/mods-available/mpm_prefork.conf'], stdout=sys.stdout, stderr=sys.stderr)
+        subprocess.run(['cp', '-f', folder+'opcache.ini', '/etc/php/7.4/mods-available/opcache.ini'], stdout=sys.stdout, stderr=sys.stderr)
 
     def _create_backup_credentials(self, backup_settings):
         s3_backup = backup_settings['s3']
