@@ -8,11 +8,6 @@
 # this is only for the mysqld standalone daemon
 [mysqld]
 
-performance_schema = off
-default-storage-engine=MyISAM
-default-tmp-storage-engine=MyISAM
-skip-innodb
-
 
 #
 # * Basic Settings
