@@ -179,8 +179,6 @@ class WpDockerBuilder:
 
         s3_backup = backup_settings['s3']
         if s3_backup is not None and s3_backup['schedule'] is not None:
-            subprocess.run('aws_install.sh', stdout=sys.stdout, stderr=sys.stderr)
-
             if 'schedule' not in s3_backup:
                 raise ValueError('Must have "schedule" field in "s3"')
 

@@ -98,13 +98,17 @@ RUN pip3 install pyyaml
 RUN rm /etc/apache2/sites-enabled/000-default.conf
 RUN rm -rf /var/www/html/*
 
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" ;\
+	unzip -qq awscliv2.zip; \
+	./aws/install; \
+	/usr/local/bin/aws --version
+
 COPY entrypoint.py /usr/local/bin/
 COPY init_mariadb.sh /usr/local/bin/
 COPY s3_backup.sh /usr/local/bin/
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY wp-docker-config.yml /etc/wp-docker-config.yml
 COPY setup-wp.sh /usr/local/bin/
-COPY aws_install.sh /usr/local/bin/
 COPY init_from_s3_backup.sh /usr/local/bin/
 COPY mem /etc/mem
 COPY conf/apache2.conf /etc/apache2/apache2.conf
