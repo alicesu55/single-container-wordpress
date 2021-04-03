@@ -27,9 +27,8 @@ sites:
       - blog.mysite.com
     ### You can control the name of the database if you like If not set.
     ### the default value is the same as your domain name
-    # database_name: 
-
-    # database_user_name
+    # database_name: Your-customized-database-name
+    # database_user_name: your-customized-database-username
   #The most basic site can be configured with just a domain name
   t3.alicesu.ml:
   t4.alicesu.ml:
