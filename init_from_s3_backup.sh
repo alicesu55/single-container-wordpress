@@ -21,8 +21,11 @@ if [ "$(ls -A /var/lib/mysql)" ]; then
      
 else
     echo "The database directory is empty, restoring from S3"
-    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_databases.sql.gz /tmp/backup_databases.sql.gz
-    gunzip -c /tmp/backup_databases.sql.gz > /docker-entrypoint-initdb.d/10-restore_from_s3.sql
+    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_databases.tar.gz /tmp/backup_databases.sql.gz
+    pushd /
+    tar vzxf /tmp/backup_databases.tar.gz 
+    cat /tmp/*.sql > /docker-entrypoint-initdb.d/10-restore_from_s3.sql
+    popd
     aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/db_pswd.json /etc/db_pswd.json
 fi
 

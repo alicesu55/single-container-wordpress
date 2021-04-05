@@ -66,6 +66,7 @@ PASSWORD_FILE = '/etc/db_pswd.json'
 class WpDockerBuilder:
     def __init__(self, config_file):
         self.sites = []
+        # DB passwords: indexed by domains
         self.db_passwords=dict()
         with open(config_file) as file:
             self.documents = yaml.full_load(file)
@@ -149,6 +150,16 @@ class WpDockerBuilder:
         s3_backup = backup_settings['s3']
         with open('/etc/backup_credentials.sh', 'a') as file:
             file.write(f"export DB_PASSWORD={self.db_passwords[ROOT_PASSWORD_KEY]}\n")
+            file.write("back_up_databases() { \n")
+            print(self.db_passwords)
+            backup_files =[]
+            for site in self.sites:
+                db_name = site.db_name
+                dump_file = f"/tmp/backup_databases_{db_name}.sql"
+                file.write(f"mysqldump --all-databases --single-transaction --user={site.db_username} --password={self.db_passwords[site.domain]} > {dump_file}"+'\n')
+                backup_files.append(dump_file)
+            file.write("tar czf /tmp/backup_databases.tar.gz "+" ".join(backup_files) + "\n")
+            file.write("}\n")
 
             if 'bucket' in s3_backup:
                 file.write(f"export BACKUP_BUCKET={s3_backup['bucket']}\n")
