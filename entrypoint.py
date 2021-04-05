@@ -167,8 +167,13 @@ class WpDockerBuilder:
 
             if 'aws_region' in s3_backup:
                 file.write(f"AWS_REGION={s3_backup['aws_region']}\n")
+                file.write(f"AWS_DEFAULT_REGION={s3_backup['aws_region']}\n")
             elif 'AWS_REGION' in os.environ:
                 file.write(f"AWS_REGION={os.environ['AWS_REGION']}\n")
+                file.write(f"AWS_DEFAULT_REGION={os.environ['AWS_REGION']}\n")
+
+            if 'endpoint' in s3_backup:
+                file.write(f"export ENDPOINT=\"--endpoint-url {s3_backup['endpoint']}\"\n")
 
     def backup_restore(self, backup_settings):
         """Setup the backups using cron job
