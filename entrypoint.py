@@ -28,6 +28,9 @@ class SiteSettings:
         self.db_password = settings['database_password'] if 'database_password' in settings else random_password()
         self.alias = settings['alias'] if 'alias' in settings else []
         self.site_folder = f"/var/www/html/{self.domain}"
+        self.port = os.environ.get('PORT')
+        if self.port is None:
+            self.port='80'
 
     def db_script(self):
         return f"""
@@ -41,7 +44,7 @@ class SiteSettings:
     def apache_config(self):
         placeholder = '__ServerName__place__holder'
         config = f"""
-        <VirtualHost *:80>
+        <VirtualHost *:{self.port}>
             DocumentRoot "{self.site_folder}"
             {placeholder}
         </VirtualHost>
