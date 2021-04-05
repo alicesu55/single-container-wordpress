@@ -56,3 +56,8 @@ backups:
     aws_access_key_id: your_aws_key
     aws_secret_access_key: your_aws_secret_key
     aws_region: us-east-1
+
+    ## Overwrite the default endpoint URL. This is unnecessary if you are using
+    ## Amazon S3, but is helpful if you are using another service with an S3
+    ## compatible API, e.g., backblaze B2
+    # endpoint: https://s3.us-west-000.backblazeb2.com

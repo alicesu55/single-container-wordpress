@@ -5,8 +5,6 @@ source /etc/backup_credentials.sh
 
 sync
 
-export AWS_DEFAULT_REGION='us-west-1'
-
 # Use a | as a separator
 exclude_dbs='information_schema|mysql|performance_schema'
 
@@ -19,6 +17,6 @@ tar -cpzf /tmp/backup_files.tar.gz /var/www/html/
 
 aws configure list
 
-aws s3 cp /tmp/backup_databases.sql.gz s3://$BACKUP_BUCKET/
-aws s3 cp /tmp/backup_files.tar.gz s3://$BACKUP_BUCKET/
-aws s3 cp /etc/db_pswd.json s3://$BACKUP_BUCKET/
+aws s3 $ENDPOINT cp /tmp/backup_databases.sql.gz s3://$BACKUP_BUCKET/
+aws s3 $ENDPOINT cp /tmp/backup_files.tar.gz s3://$BACKUP_BUCKET/
+aws s3 $ENDPOINT cp /etc/db_pswd.json s3://$BACKUP_BUCKET/
