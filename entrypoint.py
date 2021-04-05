@@ -219,7 +219,8 @@ class WpDockerBuilder:
                 json_file.write(json.dumps(self.db_passwords))
 
             with open('/etc/crontab', 'a') as file:
-                file.write(f"{s3_backup['schedule']}  root    /usr/local/bin/s3_backup.sh>/proc/1/fd/1 2>&1\n")
+                user = os.environ.get('USERNAME')
+                file.write(f"{s3_backup['schedule']}  {user}    /usr/local/bin/s3_backup.sh>/proc/1/fd/1 2>&1\n")
                 file.write('\n')
 
     def init_db_password(self, db_settings):
@@ -270,6 +271,8 @@ class WpDockerBuilder:
 if __name__=="__main__":
     builder = WpDockerBuilder('/etc/wp-docker-config.yml')
     builder.build_lamp()
+    if os.environ.get('PORT') is None:
+        os.environ['PORT'] = '80'
 
     p=subprocess.Popen (["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"], stdout=sys.stdout, stderr=sys.stderr)
     builder.setup_wordpress()
