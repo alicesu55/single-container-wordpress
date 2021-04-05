@@ -7,7 +7,7 @@ export AWS_DEFAULT_REGION='us-west-1'
 
 aws configure list
 
-if [ "$(ls -A /var/www/html)" ]; then
+if [ "$(mount |grep /var/www/html)" ]; then
     echo "The web directory is not empty. Not restoring from S3"
 else
     echo "Web directory is empty, restoring from S3"
@@ -16,7 +16,7 @@ else
     tar -xzf /tmp/backup_files.tar.gz -C /
 fi
 
-if [ "$(ls -A /var/lib/mysql)" ]; then
+if [ "$(mount |grep /var/lib/mysql)" ]; then
     echo "The database directory is not empty. Not restoring from S3"
      
 else
