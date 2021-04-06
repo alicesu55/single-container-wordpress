@@ -7,6 +7,7 @@ import string
 import os
 import sys
 import json
+import scheduler
 
 
 def random_password():
@@ -73,6 +74,7 @@ class WpDockerBuilder:
         self.db_passwords=dict()
         with open(config_file) as file:
             self.documents = yaml.full_load(file)
+        self.backup_schedule=None
 
     def _parse_sites(self, settings):
         for key in settings:
@@ -201,7 +203,7 @@ class WpDockerBuilder:
         if s3_backup is not None and s3_backup['schedule'] is not None:
             if 'schedule' not in s3_backup:
                 raise ValueError('Must have "schedule" field in "s3"')
-
+            self.backup_schedule = s3_backup['schedule']
             self._create_backup_credentials(backup_settings)
             if 'auto_restore' in s3_backup and s3_backup['auto_restore']:
                 subprocess.run(['init_from_s3_backup.sh'], stdout=sys.stdout, stderr=sys.stderr)
@@ -220,11 +222,6 @@ class WpDockerBuilder:
             # need to dump even if we have just loaded. New sites could have been added
             with open(PASSWORD_FILE, 'w') as json_file:
                 json_file.write(json.dumps(self.db_passwords))
-
-            with open('/etc/crontab', 'a') as file:
-                user = os.environ.get('USERNAME')
-                file.write(f"{s3_backup['schedule']}  {user}    /usr/local/bin/s3_backup.sh>/proc/1/fd/1 2>&1\n")
-                file.write('\n')
 
     def init_db_password(self, db_settings):
         if 'root_password_random' in db_settings and db_settings['root_password_random']==True:
@@ -271,6 +268,13 @@ class WpDockerBuilder:
         for item, doc in self.documents.items():
             print(item, ":", doc)
 
+def run_backup():
+    p = subprocess.run(['/usr/local/bin/s3_backup.sh'], stderr=STDOUT, capture_output=True)
+    if p.returncode!=0:
+        print("[Error] backup: " + p.stdout)
+    else:
+        print("Backup:" + p.stdout)
+
 if __name__=="__main__":
     builder = WpDockerBuilder('/etc/wp-docker-config.yml')
     builder.build_lamp()
@@ -279,6 +283,10 @@ if __name__=="__main__":
 
     p=subprocess.Popen (["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"], stdout=sys.stdout, stderr=sys.stderr)
     builder.setup_wordpress()
-    subprocess.run(['cat', '/etc/crontab'])
+
+    if builder.backup_schedule is not None:
+        scheduler = scheduler.Scheduler(60)
+        scheduler.add("backup", builder.backup_schedule, run_backup)
+        scheduler.start()
     p.wait()
 

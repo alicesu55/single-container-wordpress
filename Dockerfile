@@ -28,7 +28,6 @@ RUN set -eux; \
 		libpng-dev \
 # maintained here
 		apache2 \
-		cron \
 		curl \
 		libapache2-mod-php \
 		php \
@@ -94,6 +93,7 @@ RUN set -ex; \
 	chmod -R 777 wp-content
 
 RUN pip3 install pyyaml
+RUN pip3 install scheduler-cron
 
 RUN rm /etc/apache2/sites-enabled/000-default.conf
 RUN rm -rf /var/www/html/*
