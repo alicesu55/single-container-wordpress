@@ -21,7 +21,7 @@ if [ "$(mount |grep /var/lib/mysql)" ]; then
      
 else
     echo "The database directory is empty, restoring from S3"
-    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_databases.tar.gz /tmp/backup_databases.sql.gz
+    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_databases.tar.gz /tmp/backup_databases.tar.gz
     pushd /
     tar vzxf /tmp/backup_databases.tar.gz 
     cat /tmp/*.sql > /docker-entrypoint-initdb.d/10-restore_from_s3.sql
