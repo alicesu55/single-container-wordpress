@@ -11,9 +11,9 @@ if [ "$(mount |grep /var/www/html)" ]; then
     echo "The web directory is not empty. Not restoring from S3"
 else
     echo "Web directory is empty, restoring from S3"
-    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_files.tar.gz /tmp/backup_files.tar.gz
-    ls -lh /tmp/backup_files.tar.gz
-    tar -xzf /tmp/backup_files.tar.gz -C /
+    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_files.tar.xz /tmp/backup_files.tar.xz
+    ls -lh /tmp/backup_files.tar.xz
+    tar -xJf /tmp/backup_files.tar.xz -C /
 fi
 
 if [ "$(mount |grep /var/lib/mysql)" ]; then
@@ -21,9 +21,9 @@ if [ "$(mount |grep /var/lib/mysql)" ]; then
      
 else
     echo "The database directory is empty, restoring from S3"
-    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_databases.tar.gz /tmp/backup_databases.tar.gz
+    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_databases.tar.xz /tmp/backup_databases.tar.xz
     pushd /
-    tar vzxf /tmp/backup_databases.tar.gz 
+    tar vJxf /tmp/backup_databases.tar.xz 
     cat /tmp/*.sql > /docker-entrypoint-initdb.d/10-restore_from_s3.sql
     popd
     aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/db_pswd.json /etc/db_pswd.json

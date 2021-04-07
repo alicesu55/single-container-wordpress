@@ -163,7 +163,7 @@ class WpDockerBuilder:
                 dump_file = f"/tmp/backup_databases_{db_name}.sql"
                 file.write(f"mysqldump --all-databases --single-transaction --user={site.db_username} --password={self.db_passwords[site.domain]} > {dump_file}"+'\n')
                 backup_files.append(dump_file)
-            file.write("tar czf /tmp/backup_databases.tar.gz "+" ".join(backup_files) + "\n")
+            file.write("tar cJf /tmp/backup_databases.tar.xz "+" ".join(backup_files) + "\n")
             file.write("}\n")
 
             if 'bucket' in s3_backup:
@@ -269,11 +269,12 @@ class WpDockerBuilder:
             print(item, ":", doc)
 
 def run_backup():
-    p = subprocess.run(['/usr/local/bin/s3_backup.sh'], stderr=STDOUT, capture_output=True)
+    print("Running backup function")
+    p = subprocess.run(['/usr/local/bin/s3_backup.sh'], capture_output=True)
     if p.returncode!=0:
-        print("[Error] backup: " + p.stdout)
+        print("[Error] backup: \n STDERR:" + str(p.stderr) + "\nSTDOUT: "+str(p.stdout))
     else:
-        print("Backup:" + p.stdout)
+        print("[Success] backup: \n STDERR:" + str(p.stderr) + "\nSTDOUT: "+str(p.stdout))
 
 if __name__=="__main__":
     builder = WpDockerBuilder('/etc/wp-docker-config.yml')
