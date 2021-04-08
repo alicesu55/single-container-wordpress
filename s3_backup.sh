@@ -14,6 +14,6 @@ tar -cpJf /tmp/backup_files.tar.xz /var/www/html/
 
 aws configure list
 
-aws s3 $ENDPOINT --no-progress cp /tmp/backup_databases.tar.xz s3://$BACKUP_BUCKET/
-aws s3 $ENDPOINT --no-progress cp /tmp/backup_files.tar.xz s3://$BACKUP_BUCKET/
-aws s3 $ENDPOINT --no-progress cp /etc/db_pswd.json s3://$BACKUP_BUCKET/
+AWS_MAX_ATTEMPTS=10 aws s3 $ENDPOINT --no-progress cp /tmp/backup_databases.tar.xz s3://$BACKUP_BUCKET/
+AWS_MAX_ATTEMPTS=10 aws s3 $ENDPOINT --no-progress cp /tmp/backup_files.tar.xz s3://$BACKUP_BUCKET/
+AWS_MAX_ATTEMPTS=10 aws s3 $ENDPOINT --no-progress cp /etc/db_pswd.json s3://$BACKUP_BUCKET/
