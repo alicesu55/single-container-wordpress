@@ -12,13 +12,13 @@ if [ "$(mount |grep /var/www/html)" ]; then
 else
     echo "Web directory is empty, restoring from S3"
     aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_files.tar.xz /tmp/backup_files.tar.xz
+    md5sum /tmp/backup_files.tar.xz >/tmp/backup_files.md5
     ls -lh /tmp/backup_files.tar.xz
     tar -xJf /tmp/backup_files.tar.xz -C /
 fi
 
-if [ "$(mount |grep /var/lib/mysql)" ]; then
+if [ "$(ls -A /var/lib/mysql)" ]; then
     echo "The database directory is not empty. Not restoring from S3"
-     
 else
     echo "The database directory is empty, restoring from S3"
     aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_databases.tar.xz /tmp/backup_databases.tar.xz
