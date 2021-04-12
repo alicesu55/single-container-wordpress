@@ -17,7 +17,7 @@ else
     tar -xJf /tmp/backup_files.tar.xz -C /
 fi
 
-if [ "$(ls -A /var/lib/mysql)" ]; then
+if [ "$(ls /var/lib/mysql)" ]; then
     echo "The database directory is not empty. Not restoring from S3"
 else
     echo "The database directory is empty, restoring from S3"
