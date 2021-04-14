@@ -1,9 +1,7 @@
-#!/bin/bash
+#!/bin/bash -ex
 set -eux
 
 source /etc/backup_credentials.sh
-
-export AWS_DEFAULT_REGION='us-west-1'
 
 aws configure list
 
@@ -21,11 +19,11 @@ if [ "$(ls /var/lib/mysql)" ]; then
     echo "The database directory is not empty. Not restoring from S3"
 else
     echo "The database directory is empty, restoring from S3"
-    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_databases.tar.xz /tmp/backup_databases.tar.xz
+    AWS_MAX_ATTEMPTS=10  aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_databases.tar.xz /tmp/backup_databases.tar.xz
     pushd /
     tar vJxf /tmp/backup_databases.tar.xz 
     cat /tmp/*.sql > /docker-entrypoint-initdb.d/10-restore_from_s3.sql
     popd
-    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/db_pswd.json /etc/db_pswd.json
+    AWS_MAX_ATTEMPTS=10  aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/db_pswd.json /etc/db_pswd.json
 fi
 
