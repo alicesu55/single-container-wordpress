@@ -9,7 +9,7 @@ if [ "$(mount |grep /var/www/html)" ]; then
     echo "The web directory is not empty. Not restoring from S3"
 else
     echo "Web directory is empty, restoring from S3"
-    aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_files.tar.xz /tmp/backup_files.tar.xz
+    AWS_MAX_ATTEMPTS=10 aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_files.tar.xz /tmp/backup_files.tar.xz
     md5sum /tmp/backup_files.tar.xz >/tmp/backup_files.md5
     ls -lh /tmp/backup_files.tar.xz
     tar -xJf /tmp/backup_files.tar.xz -C /
