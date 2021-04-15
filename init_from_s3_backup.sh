@@ -12,7 +12,8 @@ else
     AWS_MAX_ATTEMPTS=10 aws s3 $ENDPOINT cp s3://$BACKUP_BUCKET/backup_files.tar.xz /tmp/backup_files.tar.xz
     md5sum /tmp/backup_files.tar.xz >/tmp/backup_files.md5
     ls -lh /tmp/backup_files.tar.xz
-    tar -xJf /tmp/backup_files.tar.xz -C /
+    pv -L 3m /tmp/backup_files.tar.xz | tar Jxf - -C /
+    sleep 1
 fi
 
 if [ "$(ls /var/lib/mysql)" ]; then

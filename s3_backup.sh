@@ -11,7 +11,7 @@ exclude_dbs='information_schema|mysql|performance_schema'
 
 back_up_databases
 
-XZ_OPT=-2 tar -cpJf /tmp/backup_files.tar.xz /var/www/html/
+XZ_OPT=-0 tar -cpJf /tmp/backup_files.tar.xz /var/www/html/
 
 date > /tmp/backup_summary.txt
 

@@ -34,6 +34,7 @@ RUN set -eux; \
 		php-mysql \
         python3 \
         python3-pip \
+		pv \
         supervisor \
 		unzip \
 	; \
