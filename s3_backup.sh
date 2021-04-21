@@ -14,6 +14,8 @@ back_up_databases
 XZ_OPT=-0 tar -cpJf /tmp/backup_files.tar.xz /var/www/html/
 
 date > /tmp/backup_summary.txt
+echo "Running as user: " >> /tmp/backup_summary.txt
+whoami >> /tmp/backup_summary.txt
 
 if md5sum -c /tmp/backup_files.md5
 then

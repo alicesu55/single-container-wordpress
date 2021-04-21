@@ -8,6 +8,7 @@ import os
 import sys
 import json
 import scheduler
+import time
 
 
 def random_password():
@@ -327,5 +328,12 @@ if __name__=="__main__":
         scheduler = scheduler.Scheduler(60)
         scheduler.add("backup", builder.backup_schedule, run_backup)
         scheduler.start()
+    
+    time.sleep(10)
+    whoami=subprocess.check_output(['whoami']).decode('utf8')
+    print('************************************************************')
+    print('Single container wordpress by Alice Su ( https://alice.mx )')
+    print('Running as user: ', whoami)
+    print('************************************************************')
     p.wait()
 
