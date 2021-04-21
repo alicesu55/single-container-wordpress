@@ -94,7 +94,8 @@ class WpDockerBuilder:
             self.backup_restore(self.documents['backups'])
 
         # ssh
-        self.setup_ssh(self.documents['ssh'])
+        if 'ssh' in self.documents:
+            self.setup_ssh(self.documents['ssh'])
 
         ## Database
         self.prepare_site_db_scripts(self.sites)
