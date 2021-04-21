@@ -90,7 +90,8 @@ class WpDockerBuilder:
         if 'system' in self.documents:
             self.memory_config(self.documents['system'])
         # backup and restore
-        self.backup_restore(self.documents['backups'])
+        if 'backups' in self.documents:
+            self.backup_restore(self.documents['backups'])
 
         # ssh
         self.setup_ssh(self.documents['ssh'])
