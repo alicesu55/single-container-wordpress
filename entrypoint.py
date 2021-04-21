@@ -240,7 +240,7 @@ class WpDockerBuilder:
             with open('/etc/supervisor/conf.d/ssh.conf', 'w') as file:
                 file.write(f"""
 [program:ssh]
-command=/usr/sbin/dropbear -F -E -s -g -p {port}
+command=/usr/sbin/sshd -D -p {port} -e
 autostart=true
 autorestart=false
 stdout_events_enabled=true
