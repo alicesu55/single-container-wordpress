@@ -70,7 +70,7 @@ ssh:
   #port: 20460
 
   ## To enable ssh feature via ngrok, put your ngrok key here.
-  ##  then, copy your public key to: /root/.ssh/authorized_keys
+  ##  then, copy your public key to: /etc/ssh/authorized_keys
   ##  Find out your mapped address and port number on ngrok site: 
   ##     https://dashboard.ngrok.com/endpoints/status
   ##  Copy the domain part and the port part from the URL.

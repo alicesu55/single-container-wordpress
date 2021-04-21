@@ -93,3 +93,29 @@ system:
   memory_limit: 256m
 ```
 
+## SSH support
+
+If your container does not expose a port for SSH. SSH is possible by [ngrok](https://ngrok.com/).
+
+Put your ngrok_authtoken in the settings:
+```YAML
+ssh:
+  ngrok_authtoken: your_ngrok_authtoken, get from ngrok.com
+  ## Set a port number for internal use. Your container may not have access to
+  ## port 22. This is NOT the port your ssh client connects to. Ngrok will forward the traffic it received to this port
+  port: 31782
+```
+### SSH public key
+To successfully login, you will also need to copy your public key to /etc/ssh/authorized_keys in the container.
+### SSH host and port number
+Find out your mapped address and port number on [ngrok status page](https://dashboard.ngrok.com/endpoints/status). Copy the domain part and the port part from the URL.
+For example: if the URL shown on ngrok is tcp://6.tcp.ngrok.io:10648, your ssh command will look like this:
+```Bash
+  ssh root@6.tcp.ngrok.io -p 10648 # you may not be root. see the next section.
+```
+### User name
+
+Your container may not be running by the root user. If you host your container in a public place, you may not know the user name in advance. in this case you will need a way to figure out your user name.
+
+If your container has already finished an Automatic Backup, the user name will be printed in backup_summary.txt in your S3 bucket. If you do not have this, you can figure out your user using some wordpress plugins, e.g., [WPTerm](https://wordpress.org/plugins/wpterm/).
+
