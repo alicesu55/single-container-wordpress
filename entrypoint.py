@@ -91,6 +91,9 @@ class WpDockerBuilder:
         # backup and restore
         self.backup_restore(self.documents['backups'])
 
+        # ssh
+        self.setup_ssh(self.documents['ssh'])
+
         ## Database
         self.prepare_site_db_scripts(self.sites)
 
@@ -223,6 +226,41 @@ class WpDockerBuilder:
             with open(PASSWORD_FILE, 'w') as json_file:
                 json_file.write(json.dumps(self.db_passwords))
 
+    def setup_ssh(self, ssh_settings):
+        if 'ngrok_authtoken' in ssh_settings:
+            result = subprocess.run(["ngrok", "authtoken", ssh_settings['ngrok_authtoken']], stdout=sys.stdout, stderr=sys.stderr)
+            if result.returncode!=0:
+                raise SystemError('Error initializing ngrok')
+            else:
+                print("ngrok is set up")
+            subprocess.run(['mkdir', '-p', '/etc/supervisor/conf.d'])
+            port = 22
+            if 'port' in ssh_settings:
+                port=int(ssh_settings['port'])
+            with open('/etc/supervisor/conf.d/ssh.conf', 'w') as file:
+                file.write(f"""
+[program:ssh]
+command=/usr/sbin/dropbear -F -E -s -g -p {port}
+autostart=true
+autorestart=false
+stdout_events_enabled=true
+stderr_events_enabled=true
+stdout_logfile=/dev/fd/1
+stdout_logfile_maxbytes=0
+redirect_stderr=true
+
+[program:ngrok]
+command=/usr/bin/ngrok tcp {port}
+autostart=true
+autorestart=false
+stdout_events_enabled=true
+stderr_events_enabled=true
+stdout_logfile=/dev/fd/1
+stdout_logfile_maxbytes=0
+redirect_stderr=true
+
+                    """ )
+
     def init_db_password(self, db_settings):
         if 'root_password_random' in db_settings and db_settings['root_password_random']==True:
             self.db_passwords[ROOT_PASSWORD_KEY] = random_password()
@@ -282,7 +320,7 @@ if __name__=="__main__":
     if os.environ.get('PORT') is None:
         os.environ['PORT'] = '80'
 
-    p=subprocess.Popen (["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"], stdout=sys.stdout, stderr=sys.stderr)
+    p=subprocess.Popen (["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"], stdout=sys.stdout, stderr=sys.stderr)
     builder.setup_wordpress()
 
     if builder.backup_schedule is not None:

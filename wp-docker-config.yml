@@ -61,3 +61,19 @@ backups:
     ## Amazon S3, but is helpful if you are using another service with an S3
     ## compatible API, e.g., backblaze B2
     # endpoint: https://s3.us-west-000.backblazeb2.com
+
+ssh:
+  #ngrok_authtoken: your_ngrok_authtoken, get from ngrok.com
+
+  ## Set a port number for internal use. Your container may not have access to
+  ## port 22. This is NOT the port your ssh client connects to
+  #port: 20460
+
+  ## To enable ssh feature via ngrok, put your ngrok key here.
+  ##  then, copy your public key to: /root/.ssh/authorized_keys
+  ##  Find out your mapped address and port number on ngrok site: 
+  ##     https://dashboard.ngrok.com/endpoints/status
+  ##  Copy the domain part and the port part from the URL.
+  ##  Example: if the URL shown on ngrok is tcp://6.tcp.ngrok.io:10642
+  ##  you can ssh using command:
+  ##  ssh root@6.tcp.ngrok.io -p 10642

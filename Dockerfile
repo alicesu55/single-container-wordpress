@@ -29,6 +29,7 @@ RUN set -eux; \
 # maintained here
 		apache2 \
 		curl \
+		dropbear \
 		libapache2-mod-php \
 		php \
 		php-mysql \
@@ -107,11 +108,19 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 COPY entrypoint.py /usr/local/bin/
 COPY init_mariadb.sh /usr/local/bin/
 COPY s3_backup.sh /usr/local/bin/
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY supervisord.conf /etc/supervisor/supervisord.conf
 COPY wp-docker-config.yml /etc/wp-docker-config.yml
 COPY setup-wp.sh /usr/local/bin/
 COPY init_from_s3_backup.sh /usr/local/bin/
 COPY mem /etc/mem
 COPY conf/apache2.conf /etc/apache2/apache2.conf
+
+# ngrok. We do not always need this, but it does not hurt too much to always
+# have it.
+RUN set -x \
+    # Install ngrok (latest official stable from https://ngrok.com/download).
+ && curl -Lo /ngrok.zip https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip \
+ && unzip -o /ngrok.zip -d /bin \
+ && rm -f /ngrok.zip 
 
 ENTRYPOINT [ "entrypoint.py" ]
