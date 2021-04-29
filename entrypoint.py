@@ -160,14 +160,16 @@ class WpDockerBuilder:
     def _create_backup_credentials(self, backup_settings):
         s3_backup = backup_settings['s3']
         with open('/etc/backup_credentials.sh', 'a') as file:
-            file.write(f"export DB_PASSWORD={self.db_passwords[ROOT_PASSWORD_KEY]}\n")
+            file.write(f"export DB_PASSWORD='{self.db_passwords[ROOT_PASSWORD_KEY]}'\n")
             file.write("back_up_databases() { \n")
             print(self.db_passwords)
             backup_files =[]
             for site in self.sites:
                 db_name = site.db_name
                 dump_file = f"/tmp/backup_databases_{db_name}.sql"
-                file.write(f"mysqldump --all-databases --single-transaction --user={site.db_username} --password={self.db_passwords[site.domain]} > {dump_file}"+'\n')
+                file.write(f"export MYSQL_PWD='{self.db_passwords[site.domain]}'"+"\n")
+                file.write(f"mysqldump --all-databases --single-transaction --user={site.db_username} > {dump_file}"+'\n')
+                file.write(f"unset MYSQL_PWD"+"\n")
                 backup_files.append(dump_file)
             file.write("tar cJf /tmp/backup_databases.tar.xz "+" ".join(backup_files) + "\n")
             file.write("}\n")
