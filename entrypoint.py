@@ -141,12 +141,14 @@ class WpDockerBuilder:
     def memory_config(self, mem_settings):
         print("Apply settings impacting memory: ", mem_settings)
         mem_mb=2048
-        if 'memory_limit' in mem_settings:
+        if mem_settings is not None and 'memory_limit' in mem_settings:
             mem_str = mem_settings['memory_limit']
             if mem_str.endswith('m'):
                 mem_mb=float(mem_str[:-1])
             elif mem_str.endswith('g'):
                 mem_mb=float(mem_str[:-1])*1024
+        else:
+            return
         print('Optimizing for memory: ', mem_mb)
         if mem_mb<2048:
             folder='/etc/mem/128/'
