@@ -210,10 +210,11 @@ class WpDockerBuilder:
         print('Backup settings', backup_settings)
 
         s3_backup = backup_settings['s3']
-        if s3_backup is not None and s3_backup['schedule'] is not None:
+        if s3_backup is not None:
             if 'schedule' not in s3_backup:
-                raise ValueError('Must have "schedule" field in "s3"')
-            self.backup_schedule = s3_backup['schedule']
+                self.backup_schedule = None
+            else:
+                self.backup_schedule = s3_backup['schedule']
             self._create_backup_credentials(backup_settings)
             if 'auto_restore' in s3_backup and s3_backup['auto_restore']:
                 subprocess.run(['init_from_s3_backup.sh'], stdout=sys.stdout, stderr=sys.stderr)
