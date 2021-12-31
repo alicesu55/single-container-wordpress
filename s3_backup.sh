@@ -12,7 +12,7 @@ exclude_dbs='information_schema|mysql|performance_schema'
 back_up_databases
 AWS_MAX_ATTEMPTS=10 aws s3 $ENDPOINT --no-progress cp /tmp/backup_databases.tar.xz s3://$BACKUP_BUCKET/
 
-XZ_OPT=-0 tar -cpJf /tmp/backup_files.tar.xz /var/www/html/
+XZ_OPT=-0 tar -cpJf - /var/www/html/ | pv -L 2m > ./backup_files.tar.xz
 
 date > /tmp/backup_summary.txt
 echo "Running as user: " >> /tmp/backup_summary.txt
